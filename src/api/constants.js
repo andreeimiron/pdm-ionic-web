@@ -1,11 +1,3 @@
-export const GET_CARS_PENDING = 'GET_CARS_PENDING';
-export const GET_CARS_SUCCESS = 'GET_CARS_SUCCESS';
-export const GET_CARS_ERROR = 'GET_CARS_ERROR';
-
-export const SAVE_CAR_PENDING = 'SAVE_CAR_PENDING';
-export const SAVE_CAR_SUCCESS = 'SAVE_CAR_SUCCESS';
-export const SAVE_CAR_ERROR = 'SAVE_CAR_ERROR';
-
-export const DELETE_CAR_PENDING = 'DELETE_CAR_PENDING';
-export const DELETE_CAR_SUCCESS = 'DELETE_CAR_SUCCESS';
-export const DELETE_CAR_ERROR = 'DELETE_CAR_ERROR';
+export default {
+    baseUrl: 'localhost:8000',
+};

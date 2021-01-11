@@ -13,38 +13,75 @@ import {
     IonCheckbox,
     IonLabel,
     IonItem,
+    IonImg
 } from '@ionic/react';
-import {TvContext} from "./TvProvider";
+import {TvContext} from "../../providers/tv/TvProvider";
+import {useNetwork} from "../../hooks/useNetwork";
+import {usePhotoGallery} from "../../hooks/usePhotoGallery";
+import {useMyLocation} from "../../hooks/useMyLocations";
+import {MyMap} from "../map/MyMap";
+import {get} from 'lodash';
 
 const TvForm = ({ history, match }) => {
     const { tvs, loading, requestError, saveTv, deleteTv } = useContext(TvContext);
     const [tv, setTv] = useState(null);
     const [manufacturer, setManufacturer] = useState('');
     const [model, setModel] = useState('');
-    const [isSmart, setIsSmart] = useState(false);
     const [fabricationDate, setFabricationDate] = useState('');
     const [price, setPrice] = useState(0);
+    const [isSmart, setIsSmart] = useState(false);
+    const [photo, setPhoto] = useState(null)
+    const [coords, setCoords] = useState({ lat: null, lng: null });
+
+    const { networkStatus } = useNetwork();
+    const isOnline = networkStatus.connected;
+    const { photos, takePhoto, deletePhoto } = usePhotoGallery();
+    const myLocation = useMyLocation(isOnline);
 
     useEffect(() => {
-        if (!match.params.id) {
+        const photoBtnElem = document.getElementById('take-photo-btn');
+        const manufacturerInputElem = document.getElementById('manufacturer-input');
+        const modelInputElem = document.getElementById('model-input');
+        const manufacturerLabelElem = document.getElementById('manufacturer-label');
+        const modelLabelElem = document.getElementById('model-label');
+
+        // ANIMATIONS
+    }, [])
+
+    useEffect(() => {
+        const { id } = match.params;
+
+        if (!id) {
             return;
         }
 
-        const tvId = parseInt(match.params.id);
-        const currentTv = tvs.find(item => item.id === tvId);
+        const currentTv = tvs.find(item => item._id === id);
 
         setTv(currentTv);
         if (currentTv) {
+            const { lat, lng } = currentCar;
+
             setManufacturer(currentTv.manufacturer);
             setModel(currentTv.model);
-            setIsSmart(currentTv.isSmart);
             setFabricationDate(currentTv.fabricationDate);
             setPrice(currentTv.price);
+            setIsSmart(currentTv.isSmart);
+            setPhoto(currentCar.photo);
+            setCoords({ lat, lng });
         }
     }, [match.params.id, tvs]);
 
+    useEffect(() => {
+        if (!coords.lat && !coords.lng) {
+            const lat = get(myLocation, 'position.coords.latitude', null);
+            const lng = get(myLocation, 'position.coords.longitude', null);
+
+            setCoords({ lat, lng })
+        }
+    }, [myLocation]);
+
     const handleDelete = async () => {
-        await deleteTv(tv.id);
+        await deleteTv(tv._id);
         goBack();
     };
 
@@ -52,13 +89,18 @@ const TvForm = ({ history, match }) => {
         const inputData = {
             manufacturer,
             model,
-            isSmart,
             fabricationDate,
             price,
+            isSmart,
+            photo,
+            lat: coords.lat,
+            lng: coords.lng,
+            version: 1,
         };
 
         if (tv) {
-            inputData.id = tv.id;
+            inputData._id = tv._id;
+            inputData.version = tv.version || 1;
         }
 
         await saveTv(inputData);
@@ -66,6 +108,26 @@ const TvForm = ({ history, match }) => {
 
     const goBack = () => {
         history.push('/tvs');
+    };
+
+    const handleTakePhoto = async () => {
+        const takenPhoto = await takePhoto();
+        setPhoto(takenPhoto.src);
+    };
+
+    const handleDeletePhoto = async () => {
+        const storedPhoto = photos.find(p => p.webviewPath === photo);
+
+        if (storedPhoto) {
+            await deletePhoto(storedPhoto);
+        }
+        setPhoto(null);
+    };
+
+    const onMapClick = (e) => {
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
+        setCoords({ lat, lng });
     };
 
     return (
@@ -93,6 +155,7 @@ const TvForm = ({ history, match }) => {
             <IonContent>
                 <IonLoading isOpen={loading} />
                 {requestError && <IonLabel color="danger">{requestError}</IonLabel>}
+                {offlineMessage && <IonLabel color="primary">{offlineMessage}</IonLabel>}
                 <IonItem>
                     <IonLabel>Manufacturer</IonLabel>
                     <IonInput
@@ -114,33 +177,53 @@ const TvForm = ({ history, match }) => {
                     />
                 </IonItem>
                 <IonItem>
-                    <IonLabel>Smart TV</IonLabel>
-                    <IonCheckbox
-                        checked={isSmart}
-                        onIonChange={(e) => setIsSmart(e.detail.checked)}
-                    />
-                </IonItem>
-                <IonItem>
                     <IonLabel>Fabrication date</IonLabel>
                     <IonDatetime
                         value={fabricationDate}
                         onIonChange={(e) => setFabricationDate(e.detail.value)}
-                        placeholder="ex: 10-02-2020"
+                        placeholder="Enter date.."
                         type="date"
                     />
                 </IonItem>
                 <IonItem>
-                    <IonLabel>Price</IonLabel>
+                    <IonLabel>Horse power</IonLabel>
                     <IonInput
                         value={price}
                         onIonChange={(e) => setPrice(e.detail.value)}
                         placeholder="ex: 499"
                         type="number"
-                        min={1}
-                        max={999999}
+                        min={0}
+                        max={1000}
                         slot="end"
                     />
                 </IonItem>
+                <IonItem>
+                    <IonLabel>Is Smart</IonLabel>
+                    <IonCheckbox
+                        checked={isSmart}
+                        onIonChange={(e) => setIsSmart(e.detail.checked)}
+                    />
+                </IonItem>
+                <IonButton id="take-photo-btn" style={{ margin: 20 }} onClick={handleTakePhoto}>
+                    Take photo
+                </IonButton>
+                {photo && (
+                    <IonButton color="danger" style={{ margin: 20 }} onClick={handleDeletePhoto}>
+                        Delete photo
+                    </IonButton>
+                )}
+                <IonItem style={{ margin: 20 }}>
+                    {photo ? <IonImg src={photo} style={{ width: 600, height: 'auto' }}/> : <IonLabel>No photo</IonLabel>}
+                </IonItem>
+
+                {coords.lat && coords.lng && (
+                    <MyMap
+                        lat={coords.lat}
+                        lng={coords.lng}
+                        onMapClick={onMapClick}
+                        onMarkerClick={(e) => console.log('marker click', e)}
+                    />
+                )}
             </IonContent>
         </IonPage>
     );

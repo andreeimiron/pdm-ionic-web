@@ -3,9 +3,13 @@ import { Redirect, Route } from 'react-router-dom';
 import { IonApp, IonRouterOutlet } from '@ionic/react';
 import { IonReactRouter } from '@ionic/react-router';
 
-import TvList from "./components/TvList";
-import TvForm from "./components/TvForm";
-import {TvProvider} from "./components/TvProvider";
+import TvList from "./components/tv/TvList";
+import TvForm from "./components/tv/TvForm";
+import {TvProvider} from "./providers/tv/TvProvider";
+import {AuthProvider} from "./providers/auth/AuthProvider";
+import Login from "./components/auth/Login";
+import Logout from "./components/auth/Logout";
+import PrivateRoute from './routes/PrivateRoute';
 
 /* Core CSS required for Ionic components to work properly */
 import '@ionic/react/css/core.css';
@@ -28,16 +32,20 @@ import './theme/variables.css';
 
 const App: React.FC = () => (
     <IonApp>
-        <TvProvider>
-            <IonReactRouter>
-                <IonRouterOutlet>
-                    <Route exact path="/tvs" component={TvList}/>
-                    <Route exact path="/tv" component={TvForm}/>
-                    <Route exact path="/tv/:id" component={TvForm}/>
-                    <Route exact path="/" render={() => <Redirect to="/tvs"/>}/>
-                </IonRouterOutlet>
-            </IonReactRouter>
-        </TvProvider>
+        <IonReactRouter>
+            <IonRouterOutlet>
+                <AuthProvider>
+                    <Route exact path="/login" component={Login} />
+                    <Route exact path="/logout" component={Logout} />
+                    <TvProvider>
+                        <PrivateRoute exact path="/tvs" component={TvList} />
+                        <PrivateRoute exact path="/tv" component={TvForm} />
+                        <PrivateRoute exact path="/tv/:id" component={TvForm} />
+                    </TvProvider>
+                    <Route exact path="/" render={() => <Redirect to="/tvs" />} />
+                </AuthProvider>
+            </IonRouterOutlet>
+        </IonReactRouter>
     </IonApp>
 );
 
