@@ -6,7 +6,7 @@ import {AuthContext} from "../auth/AuthProvider";
 import storageService from "../../utils/StorageService";
 import {useNetwork} from "../../hooks/useNetwork";
 
-const TVS_LIMIT = 25;
+const TVS_LIMIT = 20;
 
 const initialState = {
     tvs: [],

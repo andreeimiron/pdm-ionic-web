@@ -11,7 +11,7 @@ const Login = () => {
     const handleLogin = () => login(username, password);
 
     if (isAuthenticated) {
-        return <Redirect to="/" />;
+        return <Redirect to="/tvs" />;
     }
 
     return (

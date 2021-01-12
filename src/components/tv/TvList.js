@@ -88,26 +88,6 @@ const ItemList = ({ history }) => {
         }
     }
 
-    const groupAnimations = () => {
-        const firstElem = document.querySelector('.title');
-        const secondElem = document.querySelector('.logout');
-
-        if (firstElem && secondElem) {
-            const animationA = createAnimation()
-                .addElement(firstElem)
-                .fromTo('transform', 'translateX(-300px)', 'translateX(45vw)');
-
-            const animationB = createAnimation()
-                .addElement(secondElem)
-                .fromTo('transform', 'scale(0)', 'scale(1)');
-
-            const parentAnimation = createAnimation()
-                .duration(5000)
-                .addAnimation([animationA, animationB]);
-
-            parentAnimation.play();    }
-    }
-
     const chainAnimations = () => {
         const firstElem = document.querySelector('.title');
         const secondElem = document.querySelector('.logout');
@@ -158,6 +138,7 @@ const ItemList = ({ history }) => {
                 </IonToolbar>
             </IonHeader>
             <IonContent>
+                {requestError && <IonLabel color={"danger"}>{requestError}</IonLabel>}
                 <IonLoading isOpen={loading} message="Loading tvs" />
                 <IonInput
                     placeholder="Search..."
@@ -226,7 +207,7 @@ const ItemList = ({ history }) => {
                 </IonGrid>
                 {tvs && (
                     <IonList>
-                        {tvs.map(({ _id, manufacturer, model }) =>
+                        {tvs.map(({ _id, manufacturer, model, photo }) =>
                             <Tv
                                 key={`tv-list-item-${_id}`}
                                 text={`${manufacturer} ${model}`}
@@ -252,7 +233,6 @@ const ItemList = ({ history }) => {
                     </IonFabButton>
                 </IonFab>
             </IonContent>
-            {requestError && <IonLabel color={"danger"}>{requestError}</IonLabel>}
         </IonPage>
     );
 };

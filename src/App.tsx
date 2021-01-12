@@ -29,21 +29,24 @@ import '@ionic/react/css/display.css';
 
 /* Theme variables */
 import './theme/variables.css';
+import NetworkWrapper from "./utils/NetworkWrapper";
 
 const App: React.FC = () => (
     <IonApp>
         <IonReactRouter>
             <IonRouterOutlet>
-                <AuthProvider>
-                    <Route exact path="/login" component={Login} />
-                    <Route exact path="/logout" component={Logout} />
-                    <TvProvider>
-                        <PrivateRoute exact path="/tvs" component={TvList} />
-                        <PrivateRoute exact path="/tv" component={TvForm} />
-                        <PrivateRoute exact path="/tv/:id" component={TvForm} />
-                    </TvProvider>
-                    <Route exact path="/" render={() => <Redirect to="/tvs" />} />
-                </AuthProvider>
+                <NetworkWrapper>
+                    <AuthProvider>
+                        <Route exact path="/login" component={Login}/>
+                        <Route exact path="/logout" component={Logout}/>
+                        <TvProvider>
+                            <PrivateRoute exact path="/tvs" component={TvList}/>
+                            <PrivateRoute exact path="/tv" component={TvForm}/>
+                            <PrivateRoute exact path="/tv/:id" component={TvForm}/>
+                        </TvProvider>
+                        <Route exact path="/" render={() => <Redirect to="/tvs"/>}/>
+                    </AuthProvider>
+                </NetworkWrapper>
             </IonRouterOutlet>
         </IonReactRouter>
     </IonApp>
